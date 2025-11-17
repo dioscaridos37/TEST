@@ -1,5 +1,5 @@
 // ====================================================================
-// !!! ⚠️ ШАГ 1: ЗАМЕНИТЕ ЭТИ ПЛЕЙСХОЛДЕРЫ НА ВАШИ КЛЮЧИ ИЗ SUPABASE !!!
+// ✅ ШАГ 1: КЛЮЧИ ИЗ SUPABASE (ВАШИ ДАННЫЕ)
 // ====================================================================
 const SUPABASE_URL = 'https://qnufeercenmhfottbyxo.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFudWZlZXJjZW5taGZvdHRieXhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzMzM2NTEsImV4cCI6MjA3ODkwOTY1MX0.pYvv7WsUPFoy_rmf7wooORfg6_Bxkp9t0t_RP4iP6h8';
@@ -13,7 +13,7 @@ const postsWall = document.getElementById('posts-wall');
 const loadingSpinner = document.getElementById('loading');
 
 
-// --- Функции для работы с DOM (без изменений) ---
+// --- Функции для работы с DOM ---
 
 /**
  * Создает HTML-элемент для поста
@@ -75,13 +75,12 @@ postForm.addEventListener('submit', async (e) => {
     if (error) {
         // !!! ЕСЛИ ЕСТЬ ОШИБКА, ВЫВОДИМ ЕЕ И НЕ ОЧИЩАЕМ ПОЛЕ !!!
         console.error('Ошибка добавления поста:', error);
-        alert(`❌ Ошибка публикации: ${error.message}. Проверьте настройки Policies в Supabase (должна быть политика INSERT для 'anon').`);
+        alert(`❌ Ошибка публикации: ${error.message}. Проверьте настройки Policies в Supabase (INSERT для 'anon').`);
         // Текст останется в поле для повторной попытки или исправления
         postContent.value = content; 
     } else {
         // Успешная отправка, очищаем поле
         postContent.value = ''; 
-        // Если Realtime работает, пост появится автоматически
     }
 });
 
@@ -97,14 +96,14 @@ async function fetchInitialPosts() {
     const { data: posts, error } = await supabase
         .from('wall_posts')
         .select('*')
-        .order('created_at', { ascending: false }) // Сначала новые посты
+        // ИЗМЕНЕНИЕ 1: Сортировка по возрастанию (новые посты внизу списка)
+        .order('created_at', { ascending: true }) 
         .limit(50); 
 
     loadingSpinner.style.display = 'none';
 
     if (error) {
         console.error('Ошибка загрузки постов:', error);
-        // Можно добавить вывод сообщения об ошибке на странице
         return;
     }
 
@@ -121,9 +120,9 @@ function setupRealtimeListener() {
             const newPost = payload.new;
             console.log('Новый пост в реальном времени:', newPost);
             
-            // Вставляем новый пост в начало стены
             const newPostElement = createPostElement(newPost);
-            postsWall.prepend(newPostElement);
+            // ИЗМЕНЕНИЕ 2: Вставляем новый пост В КОНЕЦ стены, чтобы он был СНИЗУ
+            postsWall.appendChild(newPostElement); 
             
             // Плавное появление
             newPostElement.style.opacity = 0;
