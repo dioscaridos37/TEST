@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анонимная Стена | Minimal 2025</title>
+    <title>Анонимная Стена | Minimal 2025 (v2)</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -15,13 +15,15 @@
     </header>
 
     <main class="container">
-        <form id="post-form" class="post-input-card pulse-shadow">
-            <textarea id="post-content" 
-                      placeholder="Твой анонимный пост..." 
-                      maxlength="300"
-                      required></textarea>
-            <button type="submit">Опубликовать</button>
-        </form>
+        <div class="input-center-wrapper">
+            <form id="post-form" class="post-input-card deep-shadow">
+                <textarea id="post-content" 
+                          placeholder="Твой анонимный пост..." 
+                          maxlength="300"
+                          required></textarea>
+                <button type="submit">Опубликовать</button>
+            </form>
+        </div>
 
         <section id="posts-wall" class="wall-grid"></section>
         
