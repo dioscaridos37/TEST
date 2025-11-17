@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анонимная Стена | Minimal 2025</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <header class="header">
+        <h1>Анонимная Стена</h1>
+        <p>Напиши то, что не можешь сказать вслух.</p>
+    </header>
+
+    <main class="container">
+        <form id="post-form" class="post-input-card pulse-shadow">
+            <textarea id="post-content" 
+                      placeholder="Твой анонимный пост..." 
+                      maxlength="300"
+                      required></textarea>
+            <button type="submit">Опубликовать</button>
+        </form>
+
+        <section id="posts-wall" class="wall-grid"></section>
+        
+        <div id="loading" class="loading-spinner"></div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
