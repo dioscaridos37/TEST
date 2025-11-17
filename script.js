@@ -1,19 +1,28 @@
 // ====================================================================
-// ✅ ШАГ 1: КЛЮЧИ ИЗ SUPABASE (ВАШИ ДАННЫЕ)
+// !!! ⚠️ ШАГ 1: ВСТАВЬТЕ СВОИ ДАННЫЕ ИЗ КОНСОЛИ FIREBASE ЗДЕСЬ !!!
 // ====================================================================
-const SUPABASE_URL = 'https://qnufeercenmhfottbyxo.supabase.co'; 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFudWZlZXJjZW5taGZvdHRieXhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzMzM2NTEsImV4cCI6MjA3ODkwOTY1MX0.pYvv7WsUPFoy_rmf7wooORfg6_Bxkp9t0t_RP4iP6h8';
+const firebaseConfig = {
+  apiKey: "AIzaSyCUa28ZFrggXwp2Ct5-x-wN4Fq5xe5Z2vQ",
+  authDomain: "diosprod-a3348.firebaseapp.com",
+  projectId: "diosprod-a3348",
+  storageBucket: "diosprod-a3348.firebasestorage.app",
+  messagingSenderId: "760350682170",
+  appId: "1:760350682170:web:bcbd181b62aa784f815903",
+};
 // ====================================================================
 
-// Инициализация клиента Supabase
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// --- Инициализация Firebase и Firestore ---
+// (Вам нужно добавить эти CDN-скрипты в index.html, см. Шаг 3)
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 const postForm = document.getElementById('post-form');
 const postContent = document.getElementById('post-content');
 const postsWall = document.getElementById('posts-wall');
 const loadingSpinner = document.getElementById('loading');
 
 
-// --- Функции для работы с DOM ---
+// --- Функции для работы с DOM (остаются прежними) ---
 
 /**
  * Создает HTML-элемент для поста
@@ -21,14 +30,19 @@ const loadingSpinner = document.getElementById('loading');
 function createPostElement(post) {
     const card = document.createElement('div');
     card.className = 'post-card';
+    // Используем .id для CSS анимации, но не обязательно
+    card.id = `post-${post.id}`; 
 
     const content = document.createElement('p');
     content.className = 'post-card-content';
-    content.textContent = post.content;
+    // Firestore использует поле 'text'
+    content.textContent = post.text; 
 
     const date = document.createElement('p');
     date.className = 'post-card-date';
-    const formattedDate = new Date(post.created_at).toLocaleString('ru-RU', { 
+    // Firestore возвращает timestamp иначе, преобразуем его
+    const timestamp = post.timestamp ? post.timestamp.toDate() : new Date();
+    const formattedDate = timestamp.toLocaleString('ru-RU', { 
         year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
     date.textContent = `Анонимно | ${formattedDate}`;
@@ -49,7 +63,7 @@ function renderPosts(posts) {
 }
 
 
-// --- 🚀 ИСПРАВЛЕННАЯ ЛОГИКА: Добавление поста ---
+// --- 🚀 ЛОГИКА FIRESTORE: Добавление поста ---
 
 /**
  * 2. Обработчик отправки формы (Добавление поста)
@@ -61,83 +75,66 @@ postForm.addEventListener('submit', async (e) => {
     if (!content) return;
     
     const button = postForm.querySelector('button');
-    // Блокируем кнопку, чтобы избежать двойной отправки
     button.disabled = true;
 
-    // В Supabase отправляем только текст поста
-    const { error } = await supabase
-        .from('wall_posts')
-        .insert([{ content: content }]);
+    try {
+        // Отправляем пост в коллекцию 'wall_posts'
+        await db.collection("wall_posts").add({
+            // Используем поле 'text', как в старом коде
+            text: content, 
+            timestamp: firebase.firestore.FieldValue.serverTimestamp() // Генерируем метку времени на сервере
+        });
 
-    // Разблокируем кнопку
-    button.disabled = false;
-    
-    if (error) {
-        // !!! ЕСЛИ ЕСТЬ ОШИБКА, ВЫВОДИМ ЕЕ И НЕ ОЧИЩАЕМ ПОЛЕ !!!
-        console.error('Ошибка добавления поста:', error);
-        alert(`❌ Ошибка публикации: ${error.message}. Проверьте настройки Policies в Supabase (INSERT для 'anon').`);
-        // Текст останется в поле для повторной попытки или исправления
-        postContent.value = content; 
-    } else {
         // Успешная отправка, очищаем поле
         postContent.value = ''; 
+
+    } catch (error) {
+        // Показываем ошибку, если запись заблокирована (напр. неправильные Rules)
+        console.error('Ошибка добавления поста:', error);
+        alert(`❌ Ошибка публикации: ${error.message}. Проверьте правила (Rules) в Firebase.`);
+        postContent.value = content; 
+    } finally {
+        button.disabled = false;
     }
 });
 
 
-// --- Функции для работы с Supabase ---
+// --- 🔄 Realtime (Обновление в реальном времени) ---
 
-/**
- * 1. Получает посты при первой загрузке
- */
-async function fetchInitialPosts() {
-    loadingSpinner.style.display = 'block';
-    
-    const { data: posts, error } = await supabase
-        .from('wall_posts')
-        .select('*')
-        // ИЗМЕНЕНИЕ 1: Сортировка по возрастанию (новые посты внизу списка)
-        .order('created_at', { ascending: true }) 
-        .limit(50); 
-
-    loadingSpinner.style.display = 'none';
-
-    if (error) {
-        console.error('Ошибка загрузки постов:', error);
-        return;
-    }
-
-    renderPosts(posts);
-}
-
-/**
- * 3. Настройка Realtime (Обновление в реальном времени)
- */
 function setupRealtimeListener() {
-    supabase
-        .channel('schema-db-changes') 
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'wall_posts' }, (payload) => {
-            const newPost = payload.new;
-            console.log('Новый пост в реальном времени:', newPost);
-            
-            const newPostElement = createPostElement(newPost);
-            // ИЗМЕНЕНИЕ 2: Вставляем новый пост В КОНЕЦ стены, чтобы он был СНИЗУ
-            postsWall.appendChild(newPostElement); 
-            
-            // Плавное появление
-            newPostElement.style.opacity = 0;
-            setTimeout(() => {
-                newPostElement.style.transition = 'opacity 0.5s ease-in';
-                newPostElement.style.opacity = 1;
-            }, 50);
+    // Получаем посты, сортируем по времени и слушаем изменения
+    db.collection("wall_posts")
+      // Сортировка по возрастанию (новые посты внизу)
+      .orderBy("timestamp", "asc")
+      .onSnapshot((snapshot) => {
+        
+        // Очищаем стену для полного перерендера (проще, чем обрабатывать изменения)
+        postsWall.innerHTML = ''; 
+        
+        snapshot.forEach((doc) => {
+            // Добавляем ID документа к данным, чтобы функция createPostElement могла его использовать
+            const post = { id: doc.id, ...doc.data() }; 
+            const newPostElement = createPostElement(post);
+            postsWall.appendChild(newPostElement);
 
-        })
-        .subscribe();
+            // Плавное появление (для новых элементов)
+            if (!document.getElementById(`post-${post.id}`)) {
+                newPostElement.style.opacity = 0;
+                setTimeout(() => {
+                    newPostElement.style.transition = 'opacity 0.5s ease-in';
+                    newPostElement.style.opacity = 1;
+                }, 50);
+            }
+        });
+        
+        // Скрываем спиннер после первой загрузки
+        loadingSpinner.style.display = 'none'; 
+    });
 }
 
 
 // --- Инициализация при загрузке страницы ---
 document.addEventListener('DOMContentLoaded', () => {
-    fetchInitialPosts();
+    // В Firestore Realtime Listener сам загружает и слушает изменения.
     setupRealtimeListener();
 });
