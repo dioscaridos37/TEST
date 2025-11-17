@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой Чат - Аналог Telegram</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="app-container">
+        <div id="chat-list-sidebar">
+            <header>
+                <h2><span class="emoji">💬</span> Чаты</h2>
+                <div id="search-bar">
+                    <input type="text" placeholder="Поиск людей...">
+                </div>
+            </header>
+            <div id="chats">
+                <div class="chat-item active">
+                    <div class="avatar" style="background-color: #58c0a8;">ES</div>
+                    <div class="chat-info">
+                        <strong>Eva Summer</strong>
+                        <p>Reminds me of a Chinese proverb...</p>
+                    </div>
+                    <span class="time">11:00</span>
+                </div>
+                <div class="chat-item">
+                    <div class="avatar" style="background-color: #de7e7a;">AS</div>
+                    <div class="chat-info">
+                        <strong>Alexandra Smith</strong>
+                        <p>This is amazing!</p>
+                    </div>
+                    <span class="time">10:00</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="active-chat-window">
+            <header>
+                <div class="avatar" style="background-color: #58c0a8;">ES</div>
+                <strong>Eva Summer</strong>
+                <span class="status">online</span>
+            </header>
+
+            <div id="messages-container">
+                <div class="message incoming">
+                    <div class="message-content">
+                        <p>Nearly missed this sunrise</p>
+                        <div class="message-media"></div>
+                    </div>
+                    <span class="message-time">7:00</span>
+                </div>
+                
+                <div class="message outgoing">
+                    <div class="message-content">
+                        <p>Twenty years from now you will be more disappointed by the things that you didn't do than by the ones you did do, so throw off the bowlines, sail away from safe harbor, catch the trade winds in your sails.</p>
+                        <small>Mark Twain said that</small>
+                    </div>
+                    <span class="message-time">10:00</span>
+                </div>
+            </div>
+
+            <div id="input-area">
+                <input type="text" id="message-input" placeholder="Escribe un mensaje...">
+                <button id="send-btn">Отправить</button>
+                <button id="emoji-btn"><span class="emoji">😊</span></button>
+                <button id="voice-btn"><span class="emoji">🎤</span></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script src="app.js"></script>
+</body>
+</html>

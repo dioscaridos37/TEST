@@ -1,0 +1,239 @@
+/* Базовые стили и тёмная тема */
+:root {
+    --bg-dark: #1e1e1e;
+    --sidebar-bg: #272727;
+    --text-light: #f5f5f5;
+    --primary-color: #58c0a8;
+    --secondary-color: #4a4a4a;
+    --outgoing-bubble: #05845c;
+    --incoming-bubble: #363636;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Контейнер приложения */
+#app-container {
+    display: flex;
+    width: 100%;
+}
+
+/* Левая колонка - Список чатов */
+#chat-list-sidebar {
+    width: 350px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--secondary-color);
+    display: flex;
+    flex-direction: column;
+}
+
+#chat-list-sidebar header {
+    padding: 20px;
+    border-bottom: 1px solid var(--secondary-color);
+}
+
+#chat-list-sidebar h2 {
+    margin: 0 0 10px 0;
+}
+
+#search-bar input {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--secondary-color);
+    color: var(--text-light);
+    box-sizing: border-box;
+}
+
+#chats {
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.chat-item {
+    display: flex;
+    padding: 15px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--bg-dark);
+    transition: background-color 0.2s;
+}
+
+.chat-item:hover, .chat-item.active {
+    background-color: var(--secondary-color);
+}
+
+.avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    color: var(--text-light);
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.chat-info {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.chat-info strong {
+    display: block;
+    margin-bottom: 2px;
+}
+
+.chat-info p {
+    margin: 0;
+    color: #a0a0a0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.time {
+    color: #a0a0a0;
+    font-size: 12px;
+    align-self: flex-start;
+    margin-left: 10px;
+}
+
+/* Правая колонка - Активный чат */
+#active-chat-window {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#active-chat-window header {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--sidebar-bg);
+    border-bottom: 1px solid var(--secondary-color);
+}
+
+#active-chat-window header strong {
+    margin-left: 10px;
+    flex-grow: 1;
+}
+
+#active-chat-window .status {
+    color: var(--primary-color);
+    font-size: 12px;
+}
+
+/* Сообщения */
+#messages-container {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message {
+    display: flex;
+    max-width: 60%; /* Ограничение ширины для пузырьков */
+    position: relative;
+}
+
+.message-content {
+    padding: 10px 15px;
+    border-radius: 15px;
+    line-height: 1.4;
+    position: relative;
+}
+
+.message.outgoing {
+    align-self: flex-end;
+    margin-left: auto; /* Выравнивание вправо */
+}
+
+.message.incoming {
+    align-self: flex-start;
+}
+
+.outgoing .message-content {
+    background-color: var(--outgoing-bubble);
+    border-top-right-radius: 3px;
+}
+
+.incoming .message-content {
+    background-color: var(--incoming-bubble);
+    border-top-left-radius: 3px;
+}
+
+.message-time {
+    font-size: 11px;
+    color: #a0a0a0;
+    margin-top: 5px;
+    align-self: flex-end;
+    margin-left: 10px;
+}
+
+.outgoing .message-time {
+    margin-left: 0;
+    margin-right: 10px;
+}
+
+.message-media {
+    margin-top: 5px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    color: #aaa;
+    text-align: center;
+}
+
+/* Область ввода */
+#input-area {
+    display: flex;
+    padding: 10px 20px;
+    background-color: var(--sidebar-bg);
+    border-top: 1px solid var(--secondary-color);
+}
+
+#message-input {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 20px;
+    background-color: var(--secondary-color);
+    color: var(--text-light);
+    outline: none;
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+#input-area button {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    border: none;
+    border-radius: 20px;
+    padding: 10px 15px;
+    margin-left: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#input-area button:hover {
+    background-color: #43967d;
+}
+
+.emoji {
+    font-size: 1.2em;
+}
