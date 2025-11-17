@@ -2,12 +2,12 @@
 // !!! ⚠️ ШАГ 1: ВСТАВЬТЕ СВОИ ДАННЫЕ ИЗ КОНСОЛИ FIREBASE ЗДЕСЬ !!!
 // ====================================================================
 const firebaseConfig = {
-  apiKey: "AIzaSyCUa28ZFrggXwp2Ct5-x-wN4Fq5xe5Z2vQ",
-  authDomain: "diosprod-a3348.firebaseapp.com",
-  projectId: "diosprod-a3348",
-  storageBucket: "diosprod-a3348.firebasestorage.app",
-  messagingSenderId: "760350682170",
-  appId: "1:760350682170:web:bcbd181b62aa784f815903",
+  apiKey: "AIzaSyC3JH8ZcIFLNb0SsmwB9kYBDEMt1lsVgRM",
+  authDomain: "huega-chat.firebaseapp.com",
+  projectId: "huega-chat",
+  storageBucket: "huega-chat.firebasestorage.app",
+  messagingSenderId: "509304723720",
+  appId: "1:509304723720:web:e566cfe1368285941ff4bd",
 };
 // ====================================================================
 
@@ -244,3 +244,4 @@ setTimeout(() => {
         });
     }, 1000); // 1 секунда на анимацию
 }, 3500); // Показываем заставку 3.5 секунды
+
