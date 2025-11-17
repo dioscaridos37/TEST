@@ -7,7 +7,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // Инициализация клиента Supabase
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 const postForm = document.getElementById('post-form');
 const postContent = document.getElementById('post-content');
 const postsWall = document.getElementById('posts-wall');
