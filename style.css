@@ -87,51 +87,6 @@ body {
     100% { width: 100%; }
 }
 
-/* Анимация флага России */
-.russian-flag {
-    /* Новые размеры и позиция */
-    width: 60px; /* Уменьшили ширину */
-    height: 40px; /* Уменьшили высоту */
-    position: absolute; /* Позиционируем относительно splash-container */
-    bottom: 30px; /* Отступ снизу */
-    left: 50%; /* Центрируем по горизонтали */
-    transform: translateX(-50%); /* Точное центрирование */
-    
-    border-radius: 5px;
-    overflow: hidden;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); /* Немного уменьшили тень */
-    z-index: 1001; /* Убедимся, что он поверх всего */
-}
-
-/* Полосы флага остаются такими же, только изменяется родительский контейнер */
-.russian-flag::before, .russian-flag::after, .russian-flag {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 33.33%;
-    animation: flag-pulse 4s infinite; /* Анимация пульсации остаётся */
-}
-.russian-flag::before {
-    background: white;
-    top: 0;
-    animation-delay: 0s;
-}
-.russian-flag::after {
-    background: #0033a0; /* Более точный оттенок синего для флага */
-    top: 33.33%;
-    animation-delay: 0.5s;
-}
-.russian-flag {
-    background: #e4002b; /* Более точный оттенок красного для флага */
-    top: 66.66%;
-    animation-delay: 1s;
-}
-@keyframes flag-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-}
-
-
 /* ------------------------------------- */
 /* 2. ЭКРАН ПРОФИЛЯ */
 /* ------------------------------------- */
@@ -335,4 +290,5 @@ body {
 .hidden {
     display: none !important;
 }
+
 
