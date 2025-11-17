@@ -11,130 +11,236 @@ const firebaseConfig = {
 };
 // ====================================================================
 
-// --- Инициализация Firebase и Firestore ---
-// (Вам нужно добавить эти CDN-скрипты в index.html, см. Шаг 3)
+// --- Инициализация Firebase ---
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
 
-const postForm = document.getElementById('post-form');
-const postContent = document.getElementById('post-content');
-const postsWall = document.getElementById('posts-wall');
-const loadingSpinner = document.getElementById('loading');
+// --- Элементы DOM ---
+const splashScreen = document.getElementById('splash-screen');
+const profileSetup = document.getElementById('profile-setup');
+const profileForm = document.getElementById('profile-form');
+const chatScreen = document.getElementById('chat-screen');
+const messagesList = document.getElementById('messages-list');
+const messageForm = document.getElementById('message-form');
+const messageInput = document.getElementById('message-input');
+const currentUserInfo = document.getElementById('current-user-info');
+const logoutButton = document.getElementById('logout-button');
+
+// --- Глобальные переменные профиля ---
+let currentUser = null;
+let currentProfile = null;
 
 
-// --- Функции для работы с DOM (остаются прежними) ---
+// ====================================================================
+// ЛОГИКА ПРОФИЛЯ И АУТЕНТИФИКАЦИИ
+// ====================================================================
 
 /**
- * Создает HTML-элемент для поста
+ * 1. Создает или загружает профиль пользователя в Firestore.
+ * @param {string} uid - ID пользователя Firebase Auth
+ * @param {string} username - Желаемое имя
+ * @param {string} avatarColor - Желаемый цвет
  */
-function createPostElement(post) {
-    const card = document.createElement('div');
-    card.className = 'post-card';
-    // Используем .id для CSS анимации, но не обязательно
-    card.id = `post-${post.id}`; 
+async function createOrUpdateProfile(uid, username, avatarColor) {
+    const userRef = db.collection('users').doc(uid);
+    const doc = await userRef.get();
 
-    const content = document.createElement('p');
-    content.className = 'post-card-content';
-    // Firestore использует поле 'text'
-    content.textContent = post.text; 
-
-    const date = document.createElement('p');
-    date.className = 'post-card-date';
-    // Firestore возвращает timestamp иначе, преобразуем его
-    const timestamp = post.timestamp ? post.timestamp.toDate() : new Date();
-    const formattedDate = timestamp.toLocaleString('ru-RU', { 
-        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-    date.textContent = `Анонимно | ${formattedDate}`;
-
-    card.appendChild(content);
-    card.appendChild(date);
-    return card;
+    if (doc.exists) {
+        // Если профиль существует, просто загружаем его
+        currentProfile = doc.data();
+    } else {
+        // Если профиля нет (первый вход), создаем его
+        currentProfile = {
+            uid: uid,
+            username: username,
+            avatarColor: avatarColor,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        await userRef.set(currentProfile);
+    }
+    return currentProfile;
 }
 
 /**
- * Рендерит посты при первой загрузке
+ * Обработчик формы создания профиля
  */
-function renderPosts(posts) {
-    postsWall.innerHTML = '';
-    posts.forEach(post => {
-        postsWall.appendChild(createPostElement(post));
-    });
-}
-
-
-// --- 🚀 ЛОГИКА FIRESTORE: Добавление поста ---
-
-/**
- * 2. Обработчик отправки формы (Добавление поста)
- */
-postForm.addEventListener('submit', async (e) => {
+profileForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const content = postContent.value.trim();
+    const username = document.getElementById('username-input').value.trim();
+    const avatarColor = document.getElementById('avatar-color-input').value;
 
-    if (!content) return;
-    
-    const button = postForm.querySelector('button');
-    button.disabled = true;
+    if (!username) return alert("Введите имя пользователя!");
 
     try {
-        // Отправляем пост в коллекцию 'wall_posts'
-        await db.collection("wall_posts").add({
-            // Используем поле 'text', как в старом коде
-            text: content, 
-            timestamp: firebase.firestore.FieldValue.serverTimestamp() // Генерируем метку времени на сервере
+        // 1. Анонимная аутентификация, если еще не авторизованы
+        if (!auth.currentUser) {
+            await auth.signInAnonymously();
+        }
+
+        // 2. Текущий пользователь должен быть установлен слушателем auth.onAuthStateChanged
+        const uid = auth.currentUser.uid;
+        
+        // 3. Создаем профиль в Firestore
+        await createOrUpdateProfile(uid, username, avatarColor);
+
+        // 4. Переходим к чату
+        profileSetup.classList.add('hidden');
+        chatScreen.classList.remove('hidden');
+        setupChatListener();
+        
+    } catch (error) {
+        console.error("Ошибка входа:", error);
+        alert("Ошибка входа: " + error.message);
+    }
+});
+
+/**
+ * Обработчик выхода
+ */
+logoutButton.addEventListener('click', async () => {
+    await auth.signOut();
+    // Очищаем локальные данные и показываем экран профиля
+    currentUser = null;
+    currentProfile = null;
+    messagesList.innerHTML = '';
+    
+    chatScreen.classList.add('hidden');
+    profileSetup.classList.remove('hidden');
+    
+    // Перезагрузка страницы для простоты, чтобы гарантировать очистку
+    window.location.reload(); 
+});
+
+
+// ====================================================================
+// ЛОГИКА ЧАТА (Firestore Realtime)
+// ====================================================================
+
+/**
+ * Создает HTML-элемент сообщения
+ */
+function createMessageElement(msg) {
+    const isSentByMe = currentUser && currentUser.uid === msg.uid;
+    
+    const bubble = document.createElement('div');
+    bubble.className = `message-bubble ${isSentByMe ? 'sent' : 'received'}`;
+    
+    // Аватар
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    avatar.style.backgroundColor = msg.avatarColor || '#ccc'; // Если цвет не указан
+    avatar.textContent = msg.username ? msg.username[0].toUpperCase() : 'A';
+    
+    // Содержимое сообщения
+    const content = document.createElement('div');
+    content.className = 'message-content';
+    
+    const author = document.createElement('div');
+    author.className = 'message-author';
+    author.textContent = msg.username || 'Аноним';
+    
+    const text = document.createElement('p');
+    text.textContent = msg.text;
+
+    const timestamp = document.createElement('span');
+    timestamp.className = 'message-timestamp';
+    if (msg.timestamp && msg.timestamp.toDate) {
+        timestamp.textContent = msg.timestamp.toDate().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    content.appendChild(author);
+    content.appendChild(text);
+    content.appendChild(timestamp);
+
+    bubble.appendChild(avatar);
+    bubble.appendChild(content);
+
+    return bubble;
+}
+
+/**
+ * Обработчик отправки сообщения
+ */
+messageForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = messageInput.value.trim();
+
+    if (!text || !currentProfile) return;
+
+    try {
+        await db.collection("messages").add({
+            text: text,
+            uid: currentProfile.uid,
+            username: currentProfile.username,
+            avatarColor: currentProfile.avatarColor,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Успешная отправка, очищаем поле
-        postContent.value = ''; 
-
+        messageInput.value = ''; // Очистка поля
+        
     } catch (error) {
-        // Показываем ошибку, если запись заблокирована (напр. неправильные Rules)
-        console.error('Ошибка добавления поста:', error);
-        alert(`❌ Ошибка публикации: ${error.message}. Проверьте правила (Rules) в Firebase.`);
-        postContent.value = content; 
-    } finally {
-        button.disabled = false;
+        console.error("Ошибка отправки сообщения:", error);
+        alert("Ошибка отправки сообщения: " + error.message);
     }
 });
 
 
-// --- 🔄 Realtime (Обновление в реальном времени) ---
-
-function setupRealtimeListener() {
-    // Получаем посты, сортируем по времени и слушаем изменения
-    db.collection("wall_posts")
-      // Сортировка по возрастанию (новые посты внизу)
-      .orderBy("timestamp", "asc")
+/**
+ * Настройка Realtime Listener для сообщений
+ */
+function setupChatListener() {
+    // Получаем последние 50 сообщений, сортируем по времени
+    db.collection("messages")
+      .orderBy("timestamp", "desc") // Сортируем по убыванию
+      .limit(50) 
       .onSnapshot((snapshot) => {
+        messagesList.innerHTML = '';
         
-        // Очищаем стену для полного перерендера (проще, чем обрабатывать изменения)
-        postsWall.innerHTML = ''; 
-        
-        snapshot.forEach((doc) => {
-            // Добавляем ID документа к данным, чтобы функция createPostElement могла его использовать
-            const post = { id: doc.id, ...doc.data() }; 
-            const newPostElement = createPostElement(post);
-            postsWall.appendChild(newPostElement);
+        // Преобразуем snapshot в массив и переворачиваем его для правильного порядка
+        let messages = [];
+        snapshot.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+        messages.reverse(); // Самое старое сообщение теперь первое
 
-            // Плавное появление (для новых элементов)
-            if (!document.getElementById(`post-${post.id}`)) {
-                newPostElement.style.opacity = 0;
-                setTimeout(() => {
-                    newPostElement.style.transition = 'opacity 0.5s ease-in';
-                    newPostElement.style.opacity = 1;
-                }, 50);
-            }
+        messages.forEach(msg => {
+            messagesList.appendChild(createMessageElement(msg));
         });
-        
-        // Скрываем спиннер после первой загрузки
-        loadingSpinner.style.display = 'none'; 
+
+        // Прокрутка вниз к последнему сообщению
+        messagesList.scrollTop = messagesList.scrollHeight;
     });
 }
 
 
-// --- Инициализация при загрузке страницы ---
-document.addEventListener('DOMContentLoaded', () => {
-    // В Firestore Realtime Listener сам загружает и слушает изменения.
-    setupRealtimeListener();
-});
+// ====================================================================
+// ИНИЦИАЛИЗАЦИЯ
+// ====================================================================
+
+// 1. Логика экрана загрузки
+setTimeout(() => {
+    splashScreen.style.opacity = 0;
+    setTimeout(() => {
+        splashScreen.classList.add('hidden');
+        // Проверяем статус аутентификации после загрузки
+        auth.onAuthStateChanged(user => {
+            currentUser = user;
+            if (user) {
+                // Если пользователь авторизован, пытаемся загрузить его профиль
+                db.collection('users').doc(user.uid).get().then(doc => {
+                    if (doc.exists) {
+                        currentProfile = doc.data();
+                        currentUserInfo.textContent = `Чат "Родина" | ${currentProfile.username}`;
+                        chatScreen.classList.remove('hidden');
+                        setupChatListener();
+                    } else {
+                        // Нет профиля, но есть UID — просим создать профиль
+                        profileSetup.classList.remove('hidden');
+                    }
+                });
+            } else {
+                // Пользователь не авторизован - просим создать профиль
+                profileSetup.classList.remove('hidden');
+            }
+        });
+    }, 1000); // 1 секунда на анимацию
+}, 3500); // Показываем заставку 3.5 секунды
