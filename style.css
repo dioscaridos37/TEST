@@ -1,187 +1,330 @@
-/* Переменные для цветовой схемы */
+/* Переменные для цветовой схемы HUEGA */
 :root {
-    --primary-color: #6a0dad; /* Глубокий фиолетовый */
-    --secondary-color: #a448ff; /* Яркий фиолетовый */
-    --accent-color: #e0f7fa; /* Светлый акцент */
-    --text-color: #ffffff;
-    --bg-color: #1a1a2e; /* Темно-синий/почти черный фон */
-    --card-bg: rgba(255, 255, 255, 0.08); /* Чуть менее прозрачная карточка */
-    --gradient-bg: linear-gradient(180deg, var(--bg-color) 0%, #0f0f1c 100%);
-    --gradient-button: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+    --tg-primary: #54a9eb; /* Светло-голубой ТГ */
+    --tg-accent: #8e2de2; /* Фиолетовый градиент */
+    --tg-dark-bg: #1c2637; /* Темный фон */
+    --tg-card-bg: #222e43;
+    --tg-text: #e0e0e0;
+    --tg-sent-bubble: #0084ff; /* Синий пузырь */
+    --tg-received-bubble: #374765; /* Серый пузырь */
 }
 
-/* Общие стили и фон */
+/* Общие стили */
 body {
-    font-family: 'Arial', sans-serif;
-    background: var(--gradient-bg);
-    color: var(--text-color);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--tg-dark-bg);
+    color: var(--tg-text);
     margin: 0;
     padding: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow-x: hidden;
-}
-
-/* Хедер */
-.header {
-    text-align: center;
-    padding: 40px 20px 20px;
-    background: rgba(0, 0, 0, 0.2);
-    width: 100%;
-}
-
-.header h1 {
-    font-size: 3em;
-    margin-bottom: 5px;
-    /* Улучшенная тень для текста */
-    text-shadow: 0 0 15px var(--secondary-color), 0 0 5px var(--primary-color);
-}
-
-/* Контейнер для центрирования ввода */
-.container {
-    width: 90%;
-    max-width: 1000px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-}
-
-.input-center-wrapper {
-    /* Центрируем блок формы */
     display: flex;
     justify-content: center;
-    width: 100%;
-    margin-bottom: 30px;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
 }
 
-/* Стили формы ввода */
-.post-input-card {
-    background: var(--card-bg);
-    padding: 25px;
-    border-radius: 20px; /* Более скругленные углы */
+/* ------------------------------------- */
+/* 1. СПЛАШ ЭКРАН (HUEGA) */
+/* ------------------------------------- */
+.splash-container {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    max-width: 600px; /* Ограничиваем ширину для лучшего вида по центру */
-    
-    /* Красивая "глубокая" тень */
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 2px var(--secondary-color);
-    transition: box-shadow 0.5s ease;
+    height: 100%;
+    background: linear-gradient(135deg, var(--tg-dark-bg) 0%, #0c1421 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 1000;
+    transition: opacity 1s ease;
 }
 
-.post-input-card:hover {
-    box-shadow: 0 15px 50px rgba(139, 0, 255, 0.4), 0 0 0 2px var(--secondary-color);
+.splash-content h1 {
+    color: var(--tg-primary);
+    font-size: 2.5em;
+    margin-bottom: 5px;
+    letter-spacing: 2px;
 }
 
-textarea {
+.splash-content h2 {
+    color: #fff;
+    font-size: 4em;
+    margin-top: 0;
+    /* Стиль логотипа */
+    text-shadow: 0 0 20px var(--tg-accent);
+}
+
+.splash-content p {
+    font-style: italic;
+    color: #ccc;
+    max-width: 400px;
+    margin: 20px auto;
+}
+
+/* Анимация полосы загрузки */
+.loading-bar {
+    width: 200px;
+    height: 5px;
+    background: var(--tg-card-bg);
+    border-radius: 5px;
+    margin: 30px auto 0;
+    overflow: hidden;
+}
+
+.loading-bar::after {
+    content: '';
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--tg-primary), var(--tg-accent));
+    width: 0;
+    animation: loading 3s ease-in-out forwards;
+}
+
+@keyframes loading {
+    0% { width: 0; }
+    100% { width: 100%; }
+}
+
+/* Анимация флага России */
+.russian-flag {
+    width: 100px;
+    height: 60px;
+    margin: 0 auto 20px;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+}
+.russian-flag::before, .russian-flag::after, .russian-flag {
+    content: '';
+    position: absolute;
     width: 100%;
-    height: 120px;
-    padding: 15px;
+    height: 33.33%;
+    animation: flag-pulse 4s infinite;
+}
+.russian-flag::before {
+    background: white;
+    top: 0;
+    animation-delay: 0s;
+}
+.russian-flag::after {
+    background: blue;
+    top: 33.33%;
+    animation-delay: 0.5s;
+}
+.russian-flag {
+    background: red;
+    top: 66.66%;
+    animation-delay: 1s;
+}
+@keyframes flag-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+
+/* ------------------------------------- */
+/* 2. ЭКРАН ПРОФИЛЯ */
+/* ------------------------------------- */
+.profile-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+.profile-card {
+    background: var(--tg-card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.profile-card h2 {
+    color: var(--tg-primary);
+    text-align: center;
+}
+
+.profile-card label {
+    display: block;
+    margin-top: 15px;
+    color: var(--tg-text);
+    font-size: 0.9em;
+}
+
+.profile-card input[type="text"],
+.profile-card input[type="color"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #3d4a60;
+    border-radius: 8px;
+    background: #181d26;
+    color: var(--tg-text);
+    box-sizing: border-box;
+}
+
+.profile-card button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 25px;
     border: none;
-    border-radius: 12px; /* Скругление внутри */
-    background: rgba(255, 255, 255, 0.15);
-    color: var(--text-color);
-    resize: vertical;
+    border-radius: 8px;
+    background: linear-gradient(45deg, var(--tg-primary), var(--tg-accent));
+    color: white;
     font-size: 1.1em;
-    outline: none;
-    margin-bottom: 15px;
+    cursor: pointer;
     transition: all 0.3s ease;
 }
 
-textarea:focus {
-    background: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 0 15px var(--secondary-color);
+.profile-card button:hover {
+    box-shadow: 0 5px 15px rgba(142, 45, 226, 0.5);
 }
 
-/* Кнопка */
-button {
-    padding: 12px 30px;
-    border: none;
-    border-radius: 50px;
-    background: var(--gradient-button);
-    color: var(--text-color);
-    font-size: 1.1em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.3s ease;
-    box-shadow: 0 6px 20px rgba(139, 0, 255, 0.6);
-    letter-spacing: 0.5px;
-}
 
-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(139, 0, 255, 0.8);
-}
-
-button:active {
-    transform: translateY(0);
-}
-
-/* Сетка для постов */
-.wall-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 25px; /* Увеличенный зазор */
-    padding-top: 20px;
-}
-
-/* Стили Карточек Постов */
-.post-card {
-    background: var(--card-bg);
-    padding: 20px;
+/* ------------------------------------- */
+/* 3. ЭКРАН ЧАТА */
+/* ------------------------------------- */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 600px;
+    height: 90vh;
+    min-height: 500px;
+    background-color: var(--tg-card-bg);
     border-radius: 15px;
-    backdrop-filter: blur(8px); /* Более сильное размытие */
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s;
-    /* Начальная анимация появления */
-    opacity: 0;
-    animation: fadeIn 0.5s forwards;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
 }
 
-.post-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 45px rgba(139, 0, 255, 0.4);
+.chat-header {
+    background: linear-gradient(90deg, var(--tg-accent), var(--tg-primary));
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2em;
+    font-weight: bold;
 }
 
-.post-card-content {
-    font-size: 1.15em;
-    line-height: 1.6;
+.messages-list {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    /* Стиль скроллбара как в ТГ */
+    scrollbar-width: thin;
+    scrollbar-color: var(--tg-primary) var(--tg-card-bg);
+}
+
+.message-bubble {
+    display: flex;
     margin-bottom: 12px;
-    white-space: pre-wrap; /* Сохраняет переводы строк из ввода */
+    align-items: flex-start;
 }
 
-.post-card-date {
-    font-size: 0.85em;
-    color: #bdbdbd;
-    text-align: right;
+.message-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-right: 10px;
 }
 
-/* Анимация появления */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.message-content {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 15px 15px 15px 0;
+    line-height: 1.4;
+    position: relative;
+    background-color: var(--tg-received-bubble);
 }
 
-/* Спиннер загрузки */
-.loading-spinner {
-    border: 4px solid var(--card-bg);
-    border-top: 4px solid var(--secondary-color);
+.message-author {
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.message-timestamp {
+    font-size: 0.75em;
+    color: #999;
+    margin-left: 10px;
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+}
+
+/* Стиль для сообщений, отправленных текущим пользователем */
+.message-bubble.sent {
+    justify-content: flex-end;
+}
+
+.message-bubble.sent .message-avatar {
+    order: 2;
+    margin-left: 10px;
+    margin-right: 0;
+}
+
+.message-bubble.sent .message-content {
+    order: 1;
+    background-color: var(--tg-sent-bubble);
+    color: white;
+    border-radius: 15px 15px 0 15px; /* Скругление как в ТГ */
+}
+
+.message-input-area {
+    display: flex;
+    padding: 10px;
+    background-color: var(--tg-dark-bg);
+    border-top: 1px solid #3d4a60;
+}
+
+#message-input {
+    flex-grow: 1;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 20px;
+    background: var(--tg-card-bg);
+    color: var(--tg-text);
+    margin-right: 10px;
+    font-size: 1em;
+    outline: none;
+    transition: box-shadow 0.2s;
+}
+
+#message-input:focus {
+    box-shadow: 0 0 0 2px var(--tg-primary);
+}
+
+.message-input-area button {
+    background: var(--tg-primary);
+    border: none;
     border-radius: 50%;
     width: 40px;
     height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 40px auto;
-    display: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.3s;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}Ы
+.message-input-area button svg {
+    width: 20px;
+    height: 20px;
+    color: white;
+    transform: rotate(45deg) translate(-2px, 0); /* Поворот для имитации значка "отправить" */
+}
+
+.hidden {
+    display: none !important;
+}
