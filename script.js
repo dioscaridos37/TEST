@@ -1,5 +1,5 @@
 // ====================================================================
-// !!! ВАЖНО: ЗАМЕНИТЕ ЭТИ ПЛЕЙСХОЛДЕРЫ НА ВАШИ КЛЮЧИ ИЗ SUPABASE !!!
+// !!! ⚠️ ШАГ 1: ЗАМЕНИТЕ ЭТИ ПЛЕЙСХОЛДЕРЫ НА ВАШИ КЛЮЧИ ИЗ SUPABASE !!!
 // ====================================================================
 const SUPABASE_URL = 'https://qnufeercenmhfottbyxo.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFudWZlZXJjZW5taGZvdHRieXhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzMzM2NTEsImV4cCI6MjA3ODkwOTY1MX0.pYvv7WsUPFoy_rmf7wooORfg6_Bxkp9t0t_RP4iP6h8';
@@ -13,17 +13,15 @@ const postContent = document.getElementById('post-content');
 const postsWall = document.getElementById('posts-wall');
 const loadingSpinner = document.getElementById('loading');
 
-// --- Функции для работы с DOM ---
+
+// --- Функции для работы с DOM (без изменений) ---
 
 /**
  * Создает HTML-элемент для поста
- * @param {object} post - объект поста из Supabase
- * @returns {HTMLElement}
  */
 function createPostElement(post) {
     const card = document.createElement('div');
     card.className = 'post-card';
-    card.id = `post-${post.id}`; // Для обновления/удаления в реальном времени
 
     const content = document.createElement('p');
     content.className = 'post-card-content';
@@ -31,7 +29,6 @@ function createPostElement(post) {
 
     const date = document.createElement('p');
     date.className = 'post-card-date';
-    // Форматирование даты
     const formattedDate = new Date(post.created_at).toLocaleString('ru-RU', { 
         year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
@@ -43,8 +40,7 @@ function createPostElement(post) {
 }
 
 /**
- * Рендерит все посты на стену, очищая предыдущие
- * @param {Array<object>} posts - массив постов
+ * Рендерит посты при первой загрузке
  */
 function renderPosts(posts) {
     postsWall.innerHTML = '';
@@ -52,6 +48,44 @@ function renderPosts(posts) {
         postsWall.appendChild(createPostElement(post));
     });
 }
+
+
+// --- 🚀 ИСПРАВЛЕННАЯ ЛОГИКА: Добавление поста ---
+
+/**
+ * 2. Обработчик отправки формы (Добавление поста)
+ */
+postForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const content = postContent.value.trim();
+
+    if (!content) return;
+    
+    const button = postForm.querySelector('button');
+    // Блокируем кнопку, чтобы избежать двойной отправки
+    button.disabled = true;
+
+    // В Supabase отправляем только текст поста
+    const { error } = await supabase
+        .from('wall_posts')
+        .insert([{ content: content }]);
+
+    // Разблокируем кнопку
+    button.disabled = false;
+    
+    if (error) {
+        // !!! ЕСЛИ ЕСТЬ ОШИБКА, ВЫВОДИМ ЕЕ И НЕ ОЧИЩАЕМ ПОЛЕ !!!
+        console.error('Ошибка добавления поста:', error);
+        alert(`❌ Ошибка публикации: ${error.message}. Проверьте настройки Policies в Supabase (должна быть политика INSERT для 'anon').`);
+        // Текст останется в поле для повторной попытки или исправления
+        postContent.value = content; 
+    } else {
+        // Успешная отправка, очищаем поле
+        postContent.value = ''; 
+        // Если Realtime работает, пост появится автоматически
+    }
+});
+
 
 // --- Функции для работы с Supabase ---
 
@@ -65,12 +99,13 @@ async function fetchInitialPosts() {
         .from('wall_posts')
         .select('*')
         .order('created_at', { ascending: false }) // Сначала новые посты
-        .limit(50); // Ограничим 50 постами
+        .limit(50); 
 
     loadingSpinner.style.display = 'none';
 
     if (error) {
         console.error('Ошибка загрузки постов:', error);
+        // Можно добавить вывод сообщения об ошибке на странице
         return;
     }
 
@@ -78,49 +113,20 @@ async function fetchInitialPosts() {
 }
 
 /**
- * 2. Обработчик отправки формы (Добавление поста)
- */
-postForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const content = postContent.value.trim();
-
-    if (!content) return;
-    
-    // Временно отключим кнопку, чтобы избежать дублирования
-    const button = postForm.querySelector('button');
-    button.disabled = true;
-
-    const { error } = await supabase
-        .from('wall_posts')
-        .insert([{ content: content }]);
-
-    button.disabled = false;
-    
-    if (error) {
-        console.error('Ошибка добавления поста:', error);
-        alert('Не удалось отправить пост. Попробуйте снова.');
-    } else {
-        postContent.value = ''; // Очищаем поле ввода
-    }
-});
-
-
-/**
  * 3. Настройка Realtime (Обновление в реальном времени)
  */
 function setupRealtimeListener() {
     supabase
-        .channel('schema-db-changes') // Подписываемся на изменения в публичной схеме
+        .channel('schema-db-changes') 
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'wall_posts' }, (payload) => {
-            // При вставке нового поста
             const newPost = payload.new;
             console.log('Новый пост в реальном времени:', newPost);
             
-            // Создаем элемент и вставляем его в начало стены
+            // Вставляем новый пост в начало стены
             const newPostElement = createPostElement(newPost);
             postsWall.prepend(newPostElement);
             
-            // Добавим класс для анимации появления (если хотите)
+            // Плавное появление
             newPostElement.style.opacity = 0;
             setTimeout(() => {
                 newPostElement.style.transition = 'opacity 0.5s ease-in';
